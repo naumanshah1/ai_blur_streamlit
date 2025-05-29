@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import mediapipe as mp
 from PIL import Image
+import io
 
 st.title("AI Background Blur App")
 
@@ -41,3 +42,17 @@ if uploaded_file is not None:
     if st.button("Blur Background"):
         result = blur_background(image)
         st.image(result, caption="AI Blurred Background", use_column_width=True)
+
+        # Convert result (numpy array) back to PIL Image for download
+        result_pil = Image.fromarray(result)
+        buf = io.BytesIO()
+        result_pil.save(buf, format="PNG")
+        byte_im = buf.getvalue()
+
+        st.download_button(
+            label="Download Blurred Image",
+            data=byte_im,
+            file_name="blurred_image.png",
+            mime="image/png"
+        )
+
