@@ -14,7 +14,7 @@ segment = mp_selfie_segmentation.SelfieSegmentation(model_selection=1)
 # Upload image
 uploaded_file = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
 
-def blur_background(image):
+def blur_background(image, blur_intensity):
     # Convert PIL to OpenCV format
     image_np = np.array(image.convert('RGB'))
     image_bgr = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
@@ -25,8 +25,8 @@ def blur_background(image):
 
     condition = np.stack((mask,) * 3, axis=-1) > 0.6
 
-    # Blur background
-    blurred_image = cv2.GaussianBlur(image_bgr, (55, 55), 0)
+    # Blur background with intensity (kernel size)
+    blurred_image = cv2.GaussianBlur(image_bgr, (blur_intensity, blur_intensity), 0)
 
     # Combine original + blurred using mask
     output_image = np.where(condition, image_bgr, blurred_image)
@@ -39,8 +39,17 @@ if uploaded_file is not None:
     image = Image.open(uploaded_file)
     st.image(image, caption="Original", use_column_width=True)
 
+    blur_intensity = st.slider(
+        "Select Blur Intensity",
+        min_value=1,
+        max_value=99,
+        value=55,
+        step=2,
+        help="Select the intensity of background blur. Higher values mean more blur."
+    )
+
     if st.button("Blur Background"):
-        result = blur_background(image)
+        result = blur_background(image, blur_intensity)
         st.image(result, caption="AI Blurred Background", use_column_width=True)
 
         # Convert result (numpy array) back to PIL Image for download
